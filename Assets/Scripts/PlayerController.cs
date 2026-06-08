@@ -2,53 +2,63 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))]
 public class PlayerController : MonoBehaviour
 {
     public float walkSpeed = 5f;
     public float runSpeed = 8f;
+    public float airWalkSpeed = 3f;
+    public float jumpImpulse = 10f;
     Vector2 moveInput;
+    TouchingDirections touchingDirections;
 
-    public float currentMoveSpeed
+    public float CurrentMoveSpeed
     {
         get
         {
-            if (isMoving)
+            if (IsMoving && !touchingDirections.IsOnWall)
             {
-                if (isRunning)
+                if (touchingDirections.IsGrounded)
                 {
-                    return runSpeed;
+                    if (IsRunning)
+                    {
+                        return runSpeed;
+                    }
+                    else
+                    {
+                        return walkSpeed;
+                    }
                 }
                 else
                 {
-                    return walkSpeed;
+                    return airWalkSpeed;
                 }
 
             }
             else
             {
-                // Idle speed is 0
                 return 0;
             }
+            
         }
     }
 
     [SerializeField]
     private bool _isMoving = false;
-    public bool isMoving { get 
+    public bool IsMoving { get 
         { 
             return _isMoving;
         } private set 
         {
             _isMoving = value;
-            animator.SetBool("isMoving", value);
+            animator.SetBool(AnimationsStrings.isMoving, value);
         } 
     }
 
     [SerializeField]
     private bool _isRunnig = false;
 
-    public bool isRunning
+    public bool IsRunning
     {
         get
         {
@@ -57,7 +67,7 @@ public class PlayerController : MonoBehaviour
         private set
         {
             _isRunnig = value;
-            animator.SetBool("isRunning", value);
+            animator.SetBool(AnimationsStrings.isRunning, value);
         }
     }
 
@@ -87,30 +97,21 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        touchingDirections = GetComponent<TouchingDirections>();
     }
 
     private void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2 (moveInput.x * currentMoveSpeed, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2 (moveInput.x * CurrentMoveSpeed, rb.linearVelocity.y);
+
+        animator.SetFloat(AnimationsStrings.yVelocity, rb.linearVelocity.y);
     }
 
     public void OnMove (InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
 
-        isMoving = moveInput != Vector2.zero;
+        IsMoving = moveInput != Vector2.zero;
 
         SetFacingDirection(moveInput);
     }
@@ -133,11 +134,22 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            isRunning = true;
+            IsRunning = true;
         }
         else if (context.canceled) 
         {
-            isRunning = false;
+            IsRunning = false;
+        }
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        // TODO check if alive as well
+        if (context.started && touchingDirections.IsGrounded)
+        {
+            animator.SetTrigger(AnimationsStrings.jump);
+            
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpImpulse);
         }
     }
 }
