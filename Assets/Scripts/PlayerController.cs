@@ -16,29 +16,37 @@ public class PlayerController : MonoBehaviour
     {
         get
         {
-            if (IsMoving && !touchingDirections.IsOnWall)
+            if (CanMove)
             {
-                if (touchingDirections.IsGrounded)
+                if (IsMoving && !touchingDirections.IsOnWall)
                 {
-                    if (IsRunning)
+                    if (touchingDirections.IsGrounded)
                     {
-                        return runSpeed;
+                        if (IsRunning)
+                        {
+                            return runSpeed;
+                        }
+                        else
+                        {
+                            return walkSpeed;
+                        }
                     }
                     else
                     {
-                        return walkSpeed;
+                        return airWalkSpeed;
                     }
+
                 }
                 else
                 {
-                    return airWalkSpeed;
+                    return 0;
                 }
-
             }
             else
             {
                 return 0;
             }
+            
             
         }
     }
@@ -87,6 +95,14 @@ public class PlayerController : MonoBehaviour
                 transform.localScale *= new Vector2(-1, 1);
             }
             _isFacingRight = value; 
+        }
+    }
+
+    public bool CanMove
+    {
+        get
+        {
+            return animator.GetBool(AnimationsStrings.canMove);
         }
     }
 
@@ -147,9 +163,17 @@ public class PlayerController : MonoBehaviour
         // TODO check if alive as well
         if (context.started && touchingDirections.IsGrounded)
         {
-            animator.SetTrigger(AnimationsStrings.jump);
+            animator.SetTrigger(AnimationsStrings.jumpTrigger);
             
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpImpulse);
+        }
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            animator.SetTrigger(AnimationsStrings.attackTrigger);
         }
     }
 }

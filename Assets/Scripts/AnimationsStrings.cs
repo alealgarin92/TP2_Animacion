@@ -6,9 +6,11 @@ public class AnimationsStrings : MonoBehaviour
     internal static string isRunning = "isRunning";
     internal static string isGrounded = "isGrounded";
     internal static string yVelocity = "yVelocity";
-    internal static string jump = "jump";
+    internal static string jumpTrigger = "jump";
     internal static string isOnCeiling = "isOnCeiling";
     internal static string isOnWall = "isOnWall";
+    internal static string attackTrigger = "attack";
+    internal static string canMove = "canMove";
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
