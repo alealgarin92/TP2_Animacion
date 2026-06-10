@@ -11,6 +11,7 @@ public class AnimationsStrings : MonoBehaviour
     internal static string isOnWall = "isOnWall";
     internal static string attackTrigger = "attack";
     internal static string canMove = "canMove";
+    internal static string takeHitTrigger = "takeHit";
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
