@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 8207490157069496346}
   - component: {fileID: 1014990488192336386}
   - component: {fileID: 4070538803448256579}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -374,14 +374,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   castFilter:
     useTriggers: 0
-    useLayerMask: 0
+    useLayerMask: 1
     useDepth: 0
     useOutsideDepth: 0
     useNormalAngle: 0
     useOutsideNormalAngle: 0
     layerMask:
       serializedVersion: 2
-      m_Bits: 0
+      m_Bits: 64
     minDepth: 0
     maxDepth: 0
     minNormalAngle: 0

@@ -5,10 +5,12 @@ using UnityEngine;
 public class Knight : MonoBehaviour
 {
     public float walkSpeed = 3f;
+    public float walkStopRate = 0.05f;
+    public DetectionZone attackZone;
 
     Rigidbody2D rb;
     TouchingDirections touchingDirections;
-
+    Animator animator;
     public enum WalkableDirection { Right, Left }
 
     private WalkableDirection _walkDirection;
@@ -39,19 +41,48 @@ public class Knight : MonoBehaviour
         }
     }
 
+    public bool _hasTarget = false;
+    public bool HasTarget 
+    { 
+        get 
+        { 
+            return _hasTarget; 
+        } 
+        private set
+        {
+            _hasTarget = value;
+            animator.SetBool(AnimationsStrings.hasTarget, value);
+        }
+    }
+
+    public bool CanMove
+    {
+        get
+        {
+            return animator.GetBool(AnimationsStrings.canMove);
+        }
+    }
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         touchingDirections = GetComponent<TouchingDirections>();
+        animator = GetComponent<Animator>();
     }
 
+    void Update()
+    {
+        HasTarget = attackZone.detectedColliders.Count > 0;
+    }
     private void FixedUpdate()
     {
         if (touchingDirections.IsGrounded && touchingDirections.IsOnWall) 
         {
             FlipDirection();
         }
-        rb.linearVelocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.linearVelocity.y);
+        if(CanMove) 
+            rb.linearVelocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.linearVelocity.y);
+        else
+            rb.linearVelocity = new Vector2(Mathf.Lerp(rb.linearVelocity.x, 0, walkStopRate), rb.linearVelocity.y);
     }
 
     private void FlipDirection()
@@ -68,17 +99,5 @@ public class Knight : MonoBehaviour
         {
             Debug.Log("Current walkable direction is not set to legal values of right or left");
         }
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    }   
 }

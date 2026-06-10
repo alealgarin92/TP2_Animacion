@@ -238,7 +238,7 @@ MonoBehaviour:
   wallCheckDistance: 0.5
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 64
   ledgeCheckPoint: {fileID: 9133386136927353947}
   wallCheckPoint: {fileID: 5308457643868711312}
   _currentState: 0

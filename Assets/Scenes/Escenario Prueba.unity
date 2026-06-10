@@ -644,6 +644,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Skeleton
       objectReference: {fileID: 0}
+    - target: {fileID: 2272170917682388711, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 4539503377414621008, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: castFilter.useLayerMask
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4539503377414621008, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: castFilter.layerMask.m_Bits
+      value: 64
+      objectReference: {fileID: 0}
+    - target: {fileID: 4999772770199272669, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5467873330956341624, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 7848760694283464401, guid: d185940879a21e14fa92161bd312a30a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 23.8
@@ -2163,7 +2183,7 @@ GameObject:
   - component: {fileID: 853005004}
   - component: {fileID: 853005003}
   - component: {fileID: 853005002}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Tilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -8243,7 +8263,7 @@ GameObject:
   - component: {fileID: 1996108911}
   - component: {fileID: 1996108910}
   - component: {fileID: 1996108909}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Tilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}

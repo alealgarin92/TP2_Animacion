@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
+                // Movement locked
                 return 0;
             }
             
@@ -161,7 +162,7 @@ public class PlayerController : MonoBehaviour
     public void OnJump(InputAction.CallbackContext context)
     {
         // TODO check if alive as well
-        if (context.started && touchingDirections.IsGrounded)
+        if (context.started && touchingDirections.IsGrounded && CanMove)
         {
             animator.SetTrigger(AnimationsStrings.jumpTrigger);
             
