@@ -61,18 +61,21 @@ public static class SetupSkeletonAnimator
         anyToDeath.AddCondition(AnimatorConditionMode.If, 0, "isDeath");
         anyToDeath.hasExitTime = false;
         anyToDeath.duration = 0f;
+        anyToDeath.canTransitionToSelf = false;
 
         // AnyState -> Attack on attack trigger
         var anyToAttack = rootStateMachine.AddAnyStateTransition(attackState);
         anyToAttack.AddCondition(AnimatorConditionMode.If, 0, "attack");
         anyToAttack.hasExitTime = false;
         anyToAttack.duration = 0f;
+        anyToAttack.canTransitionToSelf = false;
 
         // AnyState -> TakeHit on takeHit trigger
         var anyToTakeHit = rootStateMachine.AddAnyStateTransition(takeHitState);
         anyToTakeHit.AddCondition(AnimatorConditionMode.If, 0, "takeHit");
         anyToTakeHit.hasExitTime = false;
         anyToTakeHit.duration = 0f;
+        anyToTakeHit.canTransitionToSelf = false;
 
         // Transitions out of Attack / TakeHit back to Idle
         var attackToIdle = attackState.AddTransition(idleState);
