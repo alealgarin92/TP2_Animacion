@@ -125,6 +125,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public bool IsAlive
+    {
+        get
+        {
+            return animator.GetBool(AnimationsStrings.isAlive); 
+        }
+    }
     Rigidbody2D rb;
     Animator animator;
 

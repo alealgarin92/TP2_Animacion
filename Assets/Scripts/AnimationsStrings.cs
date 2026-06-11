@@ -14,4 +14,5 @@ public class AnimationsStrings : MonoBehaviour
     internal static string takeHitTrigger = "takeHit";
     internal static string hasTarget = "hasTarget";
     internal static string death = "death";
+    internal static string isAlive = "isAlive";
 }
