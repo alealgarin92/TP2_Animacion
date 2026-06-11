@@ -173,7 +173,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 583201818a514b642a82d3412744fd86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  walkSpeed: 1
+  walkSpeed: 3
+  walkStopRate: 0.05
   attackZone: {fileID: 2257488344382041407}
   _hasTarget: 0
 --- !u!114 &8366147741615778091
@@ -320,4 +321,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c1b29169f6ce264594c1918b4696330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  DetectedColliders: []
+  detectedColliders: []
