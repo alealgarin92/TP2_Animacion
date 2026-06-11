@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,6 +12,23 @@ public class PlayerController : MonoBehaviour
     public float jumpImpulse = 10f;
     Vector2 moveInput;
     TouchingDirections touchingDirections;
+
+    [Header("Health Settings")]
+    public float maxHealth = 50f;
+    public float currentHealth;
+    public bool isAlive = true;
+    public GameObject gameOverPanel;
+    private Vector2 _spawnPosition;
+
+    [Header("Invincibility Settings")]
+    public float invincibilityDuration = 0.5f;
+    private bool _isInvincible = false;
+    private SpriteRenderer _spriteRenderer;
+
+    [Header("Attack Settings")]
+    public Transform attackPoint;
+    public float attackRange = 0.8f;
+    public float attackDamage = 10f;
 
     public float CurrentMoveSpeed
     {
@@ -103,7 +121,7 @@ public class PlayerController : MonoBehaviour
     {
         get
         {
-            return animator.GetBool(AnimationsStrings.canMove);
+            return isAlive && animator.GetBool(AnimationsStrings.canMove);
         }
     }
 
@@ -115,6 +133,76 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void Start()
+    {
+        currentHealth = maxHealth;
+        _spawnPosition = transform.position;
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if (!isAlive || _isInvincible) return;
+
+        currentHealth = Mathf.Max(0f, currentHealth - damage);
+        Debug.Log($"[Player] Took damage: {damage}. Current Health: {currentHealth}");
+
+        if (currentHealth <= 0f)
+        {
+            Die();
+        }
+        else
+        {
+            StartCoroutine(DamageFlashRoutine());
+        }
+    }
+
+    private void Die()
+    {
+        isAlive = false;
+        _isInvincible = false;
+        StopAllCoroutines(); // Stop flashing
+
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = Color.white; // Restore color
+        }
+
+        Debug.Log("[Player] Died!");
+        animator.SetTrigger(AnimationsStrings.death);
+        
+        // Stop player velocity
+        rb.linearVelocity = Vector2.zero;
+        
+        // Show Game Over UI
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
+    }
+
+    private IEnumerator DamageFlashRoutine()
+    {
+        _isInvincible = true;
+        Color originalColor = _spriteRenderer.color;
+        Color flashColor = new Color(1f, 0.3f, 0.3f, 0.8f); // Red flash
+
+        float elapsed = 0f;
+        float flashInterval = 0.1f;
+        bool isFlashing = false;
+
+        while (elapsed < invincibilityDuration)
+        {
+            _spriteRenderer.color = isFlashing ? originalColor : flashColor;
+            isFlashing = !isFlashing;
+            yield return new WaitForSeconds(flashInterval);
+            elapsed += flashInterval;
+        }
+
+        _spriteRenderer.color = originalColor;
+        _isInvincible = false;
     }
 
     private void FixedUpdate()
@@ -126,6 +214,12 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove (InputAction.CallbackContext context)
     {
+        if (!isAlive)
+        {
+            moveInput = Vector2.zero;
+            IsMoving = false;
+            return;
+        }
         moveInput = context.ReadValue<Vector2>();
 
         IsMoving = moveInput != Vector2.zero;
@@ -149,6 +243,11 @@ public class PlayerController : MonoBehaviour
 
     public void OnRun(InputAction.CallbackContext context) 
     {
+        if (!isAlive)
+        {
+            IsRunning = false;
+            return;
+        }
         if (context.started)
         {
             IsRunning = true;
@@ -161,6 +260,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (!isAlive) return;
         // TODO check if alive as well
         if (context.started && touchingDirections.IsGrounded && CanMove)
         {
@@ -172,9 +272,37 @@ public class PlayerController : MonoBehaviour
 
     public void OnAttack(InputAction.CallbackContext context)
     {
+        if (!isAlive) return;
         if (context.started)
         {
             animator.SetTrigger(AnimationsStrings.attackTrigger);
+            DealDamage();
         }
+    }
+
+    private void DealDamage()
+    {
+        // Calculate attack position in front of the player
+        Vector2 attackCenter = attackPoint != null ? (Vector2)attackPoint.position : (Vector2)transform.position + new Vector2(isFacingRight ? 1f : -1f, 0f);
+        
+        // Find all colliders in the attack circle
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(attackCenter, attackRange);
+        
+        foreach (var col in hitColliders)
+        {
+            // Check if it's the enemy and has EnemyController
+            EnemyController enemy = col.GetComponent<EnemyController>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(attackDamage);
+            }
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Vector2 attackCenter = attackPoint != null ? (Vector2)attackPoint.position : (Vector2)transform.position + new Vector2(isFacingRight ? 1f : -1f, 0f);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(attackCenter, attackRange);
     }
 }

@@ -12,6 +12,10 @@ public class EnemyController : MonoBehaviour
     public float attackRange = 1.2f;
     public float attackCooldown = 1.5f;
 
+    [Header("Chase Limit")]
+    public bool useMaxChaseDistance = false;
+    public float maxChaseDistance = 10f;
+
     [Header("Ledge & Wall Detection")]
     public float ledgeCheckDistance = 1f;
     public float wallCheckDistance = 0.5f;
@@ -28,6 +32,7 @@ public class EnemyController : MonoBehaviour
     private Animator _animator;
     private TouchingDirections _touchingDirections;
     private Coroutine _patrolWaitCoroutine;
+    private Vector2 _spawnPosition;
 
     public enum State { Patrolling, Waiting, Chasing, Attacking, Dead }
     [SerializeField] private State _currentState = State.Patrolling;
@@ -58,6 +63,7 @@ public class EnemyController : MonoBehaviour
     private void Start()
     {
         _currentHealth = maxHealth;
+        _spawnPosition = transform.position;
         
         // Find player controller in the scene
         var player = FindFirstObjectByType<PlayerController>();
@@ -119,19 +125,25 @@ public class EnemyController : MonoBehaviour
 
         bool canDetectPlayer = false;
 
-        // Only detect the player if they are roughly on the same vertical level
-        if (heightDifference <= 2.5f)
+        if (_currentState == State.Chasing || _currentState == State.Attacking)
         {
-            if (_currentState == State.Chasing || _currentState == State.Attacking)
+            // While chasing, we continue to follow the player as long as they are within range (no vertical height restriction during chase to allow jumping over)
+            canDetectPlayer = distanceToPlayer <= detectRange;
+            
+            // Also check spawn distance limit if configured
+            if (canDetectPlayer && useMaxChaseDistance)
             {
-                // If already chasing or attacking, we maintain detection as long as they are within range
-                canDetectPlayer = distanceToPlayer <= detectRange;
+                float distanceFromSpawn = Vector2.Distance(_spawnPosition, transform.position);
+                if (distanceFromSpawn > maxChaseDistance)
+                {
+                    canDetectPlayer = false;
+                }
             }
-            else
-            {
-                // If patrolling or waiting, we must see them (they are in front of our gaze)
-                canDetectPlayer = distanceToPlayer <= detectRange && IsPlayerInSight();
-            }
+        }
+        else
+        {
+            // If patrolling or waiting, we must see them (they are in front of our gaze and at a similar height)
+            canDetectPlayer = distanceToPlayer <= detectRange && heightDifference <= 2.5f && IsPlayerInSight();
         }
 
         if (canDetectPlayer)
@@ -156,10 +168,17 @@ public class EnemyController : MonoBehaviour
         }
         else
         {
-            // If we lose the player, resume patrolling
+            // If we lose the player (or walk out of range), go idle/waiting first, then resume patrolling
             if (_currentState == State.Chasing || _currentState == State.Attacking)
             {
-                _currentState = State.Patrolling;
+                if (gameObject.activeInHierarchy)
+                {
+                    _patrolWaitCoroutine = StartCoroutine(WaitAndTurnAround());
+                }
+                else
+                {
+                    _currentState = State.Patrolling;
+                }
             }
         }
     }
@@ -266,13 +285,55 @@ public class EnemyController : MonoBehaviour
         {
             _animator.SetTrigger(AnimationsStrings.attackTrigger);
             _attackCooldownTimer = attackCooldown;
-            Debug.Log("[Skeleton] Attacked Player!");
+            Debug.Log("[Skeleton] Started Attack animation!");
+
+            StartCoroutine(DealDamageWithDelayRoutine(0.5f));
+        }
+    }
+
+    private IEnumerator DealDamageWithDelayRoutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        // Verify skeleton is still alive and in attack state (not interrupted by hit-stun)
+        if (!_isDead && _animator.GetCurrentAnimatorStateInfo(0).IsName("skeleton_attack"))
+        {
+            if (_playerTransform != null)
+            {
+                PlayerController player = _playerTransform.GetComponent<PlayerController>();
+                if (player != null)
+                {
+                    float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
+                    float heightDifference = Mathf.Abs(transform.position.y - _playerTransform.position.y);
+                    
+                    // Verify player is still in range (not dodged)
+                    if (distanceToPlayer <= attackRange && heightDifference <= 1.0f)
+                    {
+                        player.TakeDamage(10f);
+                        Debug.Log("[Skeleton] Attack hit player at frame 6!");
+                    }
+                    else
+                    {
+                        Debug.Log("[Skeleton] Attack missed player (out of range/dodged)!");
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("[Skeleton] Attack was cancelled or skeleton died before landing hit.");
         }
     }
 
     public void TakeDamage(float damage)
     {
         if (_isDead) return;
+
+        // Prevent taking damage if we are already playing the takeHit animation state
+        if (_animator.GetCurrentAnimatorStateInfo(0).IsName("skeleton_take_hit"))
+        {
+            return;
+        }
 
         _currentHealth -= damage;
         _animator.SetTrigger(AnimationsStrings.takeHitTrigger);
@@ -302,6 +363,37 @@ public class EnemyController : MonoBehaviour
         }
 
         Debug.Log("[Skeleton] Died.");
+
+        // Start blinking and destruction sequence
+        StartCoroutine(BlinkAndDestroyRoutine());
+    }
+
+    private IEnumerator BlinkAndDestroyRoutine()
+    {
+        // 1. Wait for the death animation to execute (approx 1.5 seconds)
+        yield return new WaitForSeconds(1.5f);
+
+        // 2. Blink effect using SpriteRenderer
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            int blinkCount = 12;          // Number of toggles (6 cycles of flash)
+            float blinkDuration = 0.08f;   // Speed of each flash state
+            
+            for (int i = 0; i < blinkCount; i++)
+            {
+                sr.enabled = !sr.enabled;
+                yield return new WaitForSeconds(blinkDuration);
+            }
+            
+            sr.enabled = false; // Ensure it ends invisible
+        }
+
+        // Wait a tiny bit more
+        yield return new WaitForSeconds(0.2f);
+
+        // 3. Destroy the GameObject
+        Destroy(gameObject);
     }
 
     private void OnDrawGizmosSelected()
