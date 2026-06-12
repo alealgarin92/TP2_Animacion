@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     [Header("Invincibility Settings")]
     public float invincibilityDuration = 0.5f;
     private SpriteRenderer _spriteRenderer;
+    private Coroutine _damageFlashCoroutine;
+    private Color _originalColor;
 
     [Header("Attack Settings")]
     public Transform attackPoint;
@@ -142,6 +144,10 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        if (_spriteRenderer != null)
+        {
+            _originalColor = _spriteRenderer.color;
+        }
         damageable = GetComponent<Damageable>();
     }
 
@@ -170,16 +176,24 @@ public class PlayerController : MonoBehaviour
 
     private void OnPlayerHit(int damage)
     {
-        StartCoroutine(DamageFlashRoutine());
+        if (_damageFlashCoroutine != null)
+        {
+            StopCoroutine(_damageFlashCoroutine);
+        }
+        _damageFlashCoroutine = StartCoroutine(DamageFlashRoutine());
     }
 
     private void Die()
     {
-        StopAllCoroutines(); // Stop flashing
+        if (_damageFlashCoroutine != null)
+        {
+            StopCoroutine(_damageFlashCoroutine);
+            _damageFlashCoroutine = null;
+        }
 
         if (_spriteRenderer != null)
         {
-            _spriteRenderer.color = Color.white; // Restore color
+            _spriteRenderer.color = _originalColor; // Restore color
         }
 
         Debug.Log("[Player] Died!");
@@ -197,7 +211,6 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator DamageFlashRoutine()
     {
-        Color originalColor = _spriteRenderer.color;
         Color flashColor = new Color(1f, 0.3f, 0.3f, 0.8f); // Red flash
 
         float elapsed = 0f;
@@ -208,13 +221,14 @@ public class PlayerController : MonoBehaviour
 
         while (elapsed < duration)
         {
-            _spriteRenderer.color = isFlashing ? originalColor : flashColor;
+            _spriteRenderer.color = isFlashing ? _originalColor : flashColor;
             isFlashing = !isFlashing;
             yield return new WaitForSeconds(flashInterval);
             elapsed += flashInterval;
         }
 
-        _spriteRenderer.color = originalColor;
+        _spriteRenderer.color = _originalColor;
+        _damageFlashCoroutine = null;
     }
 
     private void FixedUpdate()

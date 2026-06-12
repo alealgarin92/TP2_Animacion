@@ -104,5 +104,13 @@ public class Damageable : MonoBehaviour
             OnHit?.Invoke(damage);
         }
     }
-    
+
+    public void Heal(int amount)
+    {
+        if (_isAlive)
+        {
+            Health = Mathf.Min(Health + amount, MaxHealth);
+            Debug.Log("[Damageable] Healed by " + amount + ". Current Health: " + Health);
+        }
+    }
 }

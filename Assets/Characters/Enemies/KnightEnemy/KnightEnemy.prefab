@@ -261,7 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
-  offset: {x: 0, y: 2.3, z: 0}
+  offset: {x: 0, y: 1.7, z: 0}
   size: {x: 1.5, y: 0.18}
 --- !u!1 &5222763821427750162
 GameObject:
