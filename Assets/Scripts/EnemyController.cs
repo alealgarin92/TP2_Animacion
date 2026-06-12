@@ -2,12 +2,13 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(Animator), typeof(TouchingDirections))]
+[RequireComponent(typeof(Damageable))]
 public class EnemyController : MonoBehaviour
 {
     public float walkSpeed = 2f;
     public float chaseSpeed = 2f;
     public float idleTime = 2f;
-    public float maxHealth = 30f;
+    public float maxHealth = 20f;
     public float detectRange = 6f;
     public float attackRange = 1.2f;
     public float attackCooldown = 1.5f;
@@ -33,6 +34,7 @@ public class EnemyController : MonoBehaviour
     private TouchingDirections _touchingDirections;
     private Coroutine _patrolWaitCoroutine;
     private Vector2 _spawnPosition;
+    private Damageable _damageable;
 
     public enum State { Patrolling, Waiting, Chasing, Attacking, Dead }
     [SerializeField] private State _currentState = State.Patrolling;
@@ -58,12 +60,52 @@ public class EnemyController : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _touchingDirections = GetComponent<TouchingDirections>();
+        _damageable = GetComponent<Damageable>();
+    }
+
+    private void OnEnable()
+    {
+        if (_damageable != null)
+        {
+            _damageable.OnDeath += Die;
+            _damageable.OnHit += OnSkeletonHit;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_damageable != null)
+        {
+            _damageable.OnDeath -= Die;
+            _damageable.OnHit -= OnSkeletonHit;
+        }
+    }
+
+    private void OnSkeletonHit(int damage)
+    {
+        // Prevent taking damage if we are already playing the takeHit animation state
+        if (_animator.GetCurrentAnimatorStateInfo(0).IsName("skeleton_take_hit"))
+        {
+            return;
+        }
+        _animator.SetTrigger(AnimationsStrings.takeHitTrigger);
+        Debug.Log("[Skeleton] Took damage: " + damage + ", Health remaining: " + _damageable.Health);
     }
 
     private void Start()
     {
-        _currentHealth = maxHealth;
+        if (_damageable != null)
+        {
+            _damageable.MaxHealth = (int)maxHealth;
+            _damageable.Health = (int)maxHealth;
+        }
         _spawnPosition = transform.position;
+        
+        // If groundLayer is not configured (0) or only includes Ground (64), default to Ground and Default layers
+        if (groundLayer.value == 0 || groundLayer.value == 64)
+        {
+            groundLayer = LayerMask.GetMask("Ground", "Default");
+        }
         
         // Find player controller in the scene
         var player = FindFirstObjectByType<PlayerController>();
@@ -203,8 +245,8 @@ public class EnemyController : MonoBehaviour
 
         _rb.linearVelocity = new Vector2(direction * speed, _rb.linearVelocity.y);
 
-        // Check for walls and ledges
-        if (DetectObstacleOrLedge() && _patrolWaitCoroutine == null)
+        // Check for walls and ledges only if we are grounded
+        if (_touchingDirections.IsGrounded && DetectObstacleOrLedge() && _patrolWaitCoroutine == null)
         {
             _patrolWaitCoroutine = StartCoroutine(WaitAndTurnAround());
         }
@@ -227,8 +269,8 @@ public class EnemyController : MonoBehaviour
         float walkDir = IsFacingRight ? 1f : -1f;
         _rb.linearVelocity = new Vector2(walkDir * speed, _rb.linearVelocity.y);
 
-        // Stop at ledges or walls if chasing
-        if (DetectObstacleOrLedge())
+        // Stop at ledges or walls if chasing and grounded
+        if (_touchingDirections.IsGrounded && DetectObstacleOrLedge())
         {
             _rb.linearVelocity = new Vector2(0, _rb.linearVelocity.y);
             IsMoving = false;
@@ -237,10 +279,12 @@ public class EnemyController : MonoBehaviour
 
     private bool DetectObstacleOrLedge()
     {
+        Vector2 direction = ForwardDirection;
+        Collider2D myCol = GetComponent<Collider2D>();
+        float feetY = myCol != null ? myCol.bounds.min.y : transform.position.y;
+
         // Wall detection
         Vector2 wallOrigin = wallCheckPoint != null ? (Vector2)wallCheckPoint.position : (Vector2)transform.position + new Vector2(0, 0.5f);
-        Vector2 direction = ForwardDirection;
-        
         RaycastHit2D wallHit = Physics2D.Raycast(wallOrigin, direction, wallCheckDistance, groundLayer);
         if (wallHit.collider != null)
         {
@@ -248,8 +292,19 @@ public class EnemyController : MonoBehaviour
         }
 
         // Ledge detection
-        Vector2 ledgeOrigin = ledgeCheckPoint != null ? (Vector2)ledgeCheckPoint.position : (Vector2)transform.position + new Vector2(direction.x * 0.5f, -0.5f);
-        RaycastHit2D ledgeHit = Physics2D.Raycast(ledgeOrigin, Vector2.down, ledgeCheckDistance, groundLayer);
+        Vector2 ledgeOrigin;
+        if (ledgeCheckPoint != null)
+        {
+            // Position the origin at feet level + 0.1f to avoid starting inside the platform
+            ledgeOrigin = new Vector2(ledgeCheckPoint.position.x, feetY + 0.1f);
+        }
+        else
+        {
+            ledgeOrigin = new Vector2(transform.position.x + direction.x * 0.5f, feetY + 0.1f);
+        }
+
+        // Cast down for a short distance (0.5f is deep enough to reach below ground level safely)
+        RaycastHit2D ledgeHit = Physics2D.Raycast(ledgeOrigin, Vector2.down, 0.5f, groundLayer);
         if (ledgeHit.collider == null)
         {
             return true;
@@ -300,8 +355,8 @@ public class EnemyController : MonoBehaviour
         {
             if (_playerTransform != null)
             {
-                PlayerController player = _playerTransform.GetComponent<PlayerController>();
-                if (player != null)
+                Damageable playerDamageable = _playerTransform.GetComponent<Damageable>();
+                if (playerDamageable != null)
                 {
                     float distanceToPlayer = Vector2.Distance(transform.position, _playerTransform.position);
                     float heightDifference = Mathf.Abs(transform.position.y - _playerTransform.position.y);
@@ -309,7 +364,7 @@ public class EnemyController : MonoBehaviour
                     // Verify player is still in range (not dodged)
                     if (distanceToPlayer <= attackRange && heightDifference <= 1.0f)
                     {
-                        player.TakeDamage(10f);
+                        playerDamageable.Hit(10);
                         Debug.Log("[Skeleton] Attack hit player at frame 6!");
                     }
                     else
@@ -327,22 +382,9 @@ public class EnemyController : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
-        if (_isDead) return;
-
-        // Prevent taking damage if we are already playing the takeHit animation state
-        if (_animator.GetCurrentAnimatorStateInfo(0).IsName("skeleton_take_hit"))
+        if (_damageable != null)
         {
-            return;
-        }
-
-        _currentHealth -= damage;
-        _animator.SetTrigger(AnimationsStrings.takeHitTrigger);
-
-        Debug.Log("[Skeleton] Took damage: " + damage + ", Health remaining: " + _currentHealth);
-
-        if (_currentHealth <= 0f)
-        {
-            Die();
+            _damageable.Hit((int)damage);
         }
     }
 

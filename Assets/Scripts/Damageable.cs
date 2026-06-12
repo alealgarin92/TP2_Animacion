@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Damageable : MonoBehaviour
@@ -6,6 +7,7 @@ public class Damageable : MonoBehaviour
 
     [SerializeField]
     private int _maxHealth = 100;
+
     public int MaxHealth
     {
         get 
@@ -18,6 +20,7 @@ public class Damageable : MonoBehaviour
         }
     }
 
+    [SerializeField]
     private int _health = 100;
 
     public int Health
@@ -30,7 +33,7 @@ public class Damageable : MonoBehaviour
         {
             _health = value;
 
-            if(_health < 0)
+            if(_health <= 0)
             {
                 IsAlive = false;
             }
@@ -45,23 +48,36 @@ public class Damageable : MonoBehaviour
     private float timeSinceHit = 0;
     public float invincibilityTime = 0.25f;
 
-    private bool IsAlive 
+    // C# Events
+    public event Action<int> OnHit;
+    public event Action OnDeath;
+
+    public bool IsAlive 
     { 
         get 
         { 
             return _isAlive;
         }
-        set
-        {
+        private set 
+        { 
             _isAlive = value;
             animator.SetBool(AnimationsStrings.isAlive, value);
-            Debug.Log("IsAlive set" + value);
-        }
+            Debug.Log("IsAlive set " + value);
+            if (!_isAlive)
+            {
+                OnDeath?.Invoke();
+            }
+        } 
     }
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
+    }
+
+    private void Start()
+    {
+        Health = MaxHealth;
     }
 
     private void Update()
@@ -77,7 +93,6 @@ public class Damageable : MonoBehaviour
 
             timeSinceHit += Time.deltaTime;
         }
-        Hit(10);
     }
 
     public void Hit(int damage)
@@ -86,6 +101,7 @@ public class Damageable : MonoBehaviour
         {
             Health -= damage;
             isInvincible = true;
+            OnHit?.Invoke(damage);
         }
     }
     

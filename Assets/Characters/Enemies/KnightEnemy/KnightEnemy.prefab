@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 8366147741615778091}
   - component: {fileID: 4284353346512906331}
   - component: {fileID: 1786922543589172959}
+  - component: {fileID: 1786922543589172962}
   m_Layer: 8
   m_Name: KnightEnemy
   m_TagString: Untagged
@@ -37,6 +38,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7112547695399411122}
+  - {fileID: 629502039209451009}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &4815579751921936197
@@ -243,10 +245,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbf67c70b46e70e4bb00db3bfd929105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Damageable
-  _maxHealth: 100
+  _maxHealth: 20
   _isAlive: 1
   isInvincible: 0
   invincibilityTime: 0.25
+--- !u!114 &1786922543589172962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1501171574209096505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
+  offset: {x: 0, y: 2.3, z: 0}
+  size: {x: 1.5, y: 0.18}
 --- !u!1 &5222763821427750162
 GameObject:
   m_ObjectHideFlags: 0
@@ -314,7 +330,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.11095214, y: -0.17069578}
+  m_Offset: {x: 0.4304638, y: -0.17069578}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -324,7 +340,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.4850535, y: 1.9388275}
+  m_Size: {x: 3.5678854, y: 1.9388275}
   m_EdgeRadius: 0
 --- !u!114 &2257488344382041407
 MonoBehaviour:
@@ -339,3 +355,103 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   detectedColliders: []
+--- !u!1 &7459402223966099610
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 629502039209451009}
+  - component: {fileID: 408608105388964279}
+  - component: {fileID: 6211841669404879904}
+  m_Layer: 10
+  m_Name: SwordAttack
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &629502039209451009
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459402223966099610}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5291445316927681965}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!60 &408608105388964279
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459402223966099610}
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 2.876001, y: 1.3811572}
+      - {x: 1.5004754, y: 0.9240656}
+      - {x: 2.1236258, y: 0.20451415}
+      - {x: 1.773577, y: -0.5189605}
+      - {x: 3.4989247, y: -1.0068245}
+      - {x: 3.758317, y: -0.36722207}
+      - {x: 3.5671797, y: 0.5429091}
+  m_UseDelaunayMesh: 1
+--- !u!114 &6211841669404879904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459402223966099610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc621fc9aa9eb6440b8ae755bfec160c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  attackDamage: 10

@@ -12,23 +12,23 @@ public class PlayerController : MonoBehaviour
     public float jumpImpulse = 10f;
     Vector2 moveInput;
     TouchingDirections touchingDirections;
-
-    [Header("Health Settings")]
-    public float maxHealth = 50f;
-    public float currentHealth;
-    public bool isAlive = true;
-    public GameObject gameOverPanel;
-    private Vector2 _spawnPosition;
+    Damageable damageable;
 
     [Header("Invincibility Settings")]
     public float invincibilityDuration = 0.5f;
-    private bool _isInvincible = false;
     private SpriteRenderer _spriteRenderer;
 
     [Header("Attack Settings")]
     public Transform attackPoint;
     public float attackRange = 0.8f;
     public float attackDamage = 10f;
+
+    public GameObject gameOverPanel;
+    private Vector2 _spawnPosition;
+
+    // Backwards compatibility properties for HealthUI and other scripts
+    public float maxHealth => damageable != null ? damageable.MaxHealth : 100f;
+    public float currentHealth => damageable != null ? damageable.Health : 100f;
 
     public float CurrentMoveSpeed
     {
@@ -121,7 +121,7 @@ public class PlayerController : MonoBehaviour
     {
         get
         {
-            return isAlive && animator.GetBool(AnimationsStrings.canMove);
+            return IsAlive && animator.GetBool(AnimationsStrings.canMove);
         }
     }
 
@@ -129,9 +129,10 @@ public class PlayerController : MonoBehaviour
     {
         get
         {
-            return animator.GetBool(AnimationsStrings.isAlive); 
+            return damageable != null ? damageable.IsAlive : false;
         }
     }
+
     Rigidbody2D rb;
     Animator animator;
 
@@ -141,35 +142,39 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
+        damageable = GetComponent<Damageable>();
+    }
+
+    private void OnEnable()
+    {
+        if (damageable != null)
+        {
+            damageable.OnDeath += Die;
+            damageable.OnHit += OnPlayerHit;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (damageable != null)
+        {
+            damageable.OnDeath -= Die;
+            damageable.OnHit -= OnPlayerHit;
+        }
     }
 
     private void Start()
     {
-        currentHealth = maxHealth;
         _spawnPosition = transform.position;
     }
 
-    public void TakeDamage(float damage)
+    private void OnPlayerHit(int damage)
     {
-        if (!isAlive || _isInvincible) return;
-
-        currentHealth = Mathf.Max(0f, currentHealth - damage);
-        Debug.Log($"[Player] Took damage: {damage}. Current Health: {currentHealth}");
-
-        if (currentHealth <= 0f)
-        {
-            Die();
-        }
-        else
-        {
-            StartCoroutine(DamageFlashRoutine());
-        }
+        StartCoroutine(DamageFlashRoutine());
     }
 
     private void Die()
     {
-        isAlive = false;
-        _isInvincible = false;
         StopAllCoroutines(); // Stop flashing
 
         if (_spriteRenderer != null)
@@ -192,7 +197,6 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator DamageFlashRoutine()
     {
-        _isInvincible = true;
         Color originalColor = _spriteRenderer.color;
         Color flashColor = new Color(1f, 0.3f, 0.3f, 0.8f); // Red flash
 
@@ -200,7 +204,9 @@ public class PlayerController : MonoBehaviour
         float flashInterval = 0.1f;
         bool isFlashing = false;
 
-        while (elapsed < invincibilityDuration)
+        float duration = damageable != null ? damageable.invincibilityTime : invincibilityDuration;
+
+        while (elapsed < duration)
         {
             _spriteRenderer.color = isFlashing ? originalColor : flashColor;
             isFlashing = !isFlashing;
@@ -209,7 +215,6 @@ public class PlayerController : MonoBehaviour
         }
 
         _spriteRenderer.color = originalColor;
-        _isInvincible = false;
     }
 
     private void FixedUpdate()
@@ -221,6 +226,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove (InputAction.CallbackContext context)
     {
+        moveInput = context.ReadValue<Vector2>();
+
         if (IsAlive)
         {
             IsMoving = moveInput != Vector2.zero;
@@ -231,7 +238,6 @@ public class PlayerController : MonoBehaviour
         {
             IsMoving = false;
         }
-        moveInput = context.ReadValue<Vector2>();   
     }
 
     private void SetFacingDirection(Vector2 moveInput)
@@ -250,7 +256,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnRun(InputAction.CallbackContext context) 
     {
-        if (!isAlive)
+        if (!IsAlive)
         {
             IsRunning = false;
             return;
@@ -267,8 +273,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (!isAlive) return;
-        // TODO check if alive as well
+        if (!IsAlive) return;
+        
         if (context.started && touchingDirections.IsGrounded && CanMove)
         {
             animator.SetTrigger(AnimationsStrings.jumpTrigger);
@@ -279,7 +285,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if (!isAlive) return;
+        if (!IsAlive) return;
         if (context.started)
         {
             animator.SetTrigger(AnimationsStrings.attackTrigger);
@@ -297,11 +303,13 @@ public class PlayerController : MonoBehaviour
         
         foreach (var col in hitColliders)
         {
-            // Check if it's the enemy and has EnemyController
-            EnemyController enemy = col.GetComponent<EnemyController>();
-            if (enemy != null)
+            // Do not damage ourselves
+            if (col.gameObject == gameObject) continue;
+
+            Damageable targetDamageable = col.GetComponent<Damageable>();
+            if (targetDamageable != null)
             {
-                enemy.TakeDamage(attackDamage);
+                targetDamageable.Hit((int)attackDamage);
             }
         }
     }

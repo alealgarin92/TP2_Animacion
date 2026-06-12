@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 6124622894192474580}
   - component: {fileID: 4539503377414621008}
   - component: {fileID: 1724640840811209477}
+  - component: {fileID: 1786922543589172960}
+  - component: {fileID: 1786922543589172961}
   m_Layer: 0
   m_Name: Skeleton
   m_TagString: Untagged
@@ -230,7 +232,7 @@ MonoBehaviour:
   walkSpeed: 2
   chaseSpeed: 2
   idleTime: 1.5
-  maxHealth: 30
+  maxHealth: 20
   detectRange: 5
   attackRange: 1.2
   attackCooldown: 1.5
@@ -304,3 +306,33 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7848760694283464401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1786922543589172960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2272170917682388711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbf67c70b46e70e4bb00db3bfd929105, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Damageable
+  _maxHealth: 20
+  _isAlive: 1
+  isInvincible: 0
+  invincibilityTime: 0.25
+--- !u!114 &1786922543589172961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2272170917682388711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealthBar
+  offset: {x: 0, y: 1.8, z: 0}
+  size: {x: 1.2, y: 0.15}

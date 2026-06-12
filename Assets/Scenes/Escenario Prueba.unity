@@ -4614,6 +4614,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2981824228032234789, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
+      propertyPath: _health
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2981824228032234789, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
+      propertyPath: _isAlive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3820348276494966269, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -4623,8 +4631,12 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 7282799520397685312, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
+      propertyPath: maxHealth
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7282799520397685312, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
       propertyPath: currentHealth
-      value: 50
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7282799520397685312, guid: 458f881ab264c9f409d00242ed5c9857, type: 3}
       propertyPath: gameOverPanel
@@ -11112,6 +11124,10 @@ PrefabInstance:
     - target: {fileID: 1501171574209096505, guid: 90050bbd68d728840810ae71af70ed87, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1786922543589172959, guid: 90050bbd68d728840810ae71af70ed87, type: 3}
+      propertyPath: _health
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 5291445316927681965, guid: 90050bbd68d728840810ae71af70ed87, type: 3}
       propertyPath: m_LocalPosition.x
