@@ -221,17 +221,17 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove (InputAction.CallbackContext context)
     {
-        if (!isAlive)
+        if (IsAlive)
         {
-            moveInput = Vector2.zero;
-            IsMoving = false;
-            return;
+            IsMoving = moveInput != Vector2.zero;
+
+            SetFacingDirection(moveInput);
         }
-        moveInput = context.ReadValue<Vector2>();
-
-        IsMoving = moveInput != Vector2.zero;
-
-        SetFacingDirection(moveInput);
+        else
+        {
+            IsMoving = false;
+        }
+        moveInput = context.ReadValue<Vector2>();   
     }
 
     private void SetFacingDirection(Vector2 moveInput)
