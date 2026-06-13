@@ -307,6 +307,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void OnRangedAttack(InputAction.CallbackContext context)
+    {
+        if (!IsAlive) return;
+        if (context.started)
+        {
+            animator.SetTrigger(AnimationsStrings.RangedAttackTrigger);
+        }
+    }
+
     private void DealDamage()
     {
         // Calculate attack position in front of the player

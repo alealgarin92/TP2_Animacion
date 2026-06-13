@@ -95,14 +95,16 @@ public class Damageable : MonoBehaviour
         }
     }
 
-    public void Hit(int damage)
+    public bool Hit(int damage)
     {
         if (_isAlive && !isInvincible) 
         {
             Health -= damage;
             isInvincible = true;
             OnHit?.Invoke(damage);
+            return true;
         }
+        return false;
     }
 
     public void Heal(int amount)
