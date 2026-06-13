@@ -5,6 +5,7 @@ public class Projectile : MonoBehaviour
     public int damage = 10;
     public Vector2 moveSpeed = new Vector2(3f, 0);
     public Vector2 knockback = new Vector2(3f, 0);
+    [HideInInspector] public GameObject owner;
 
     Rigidbody2D rb;
 
@@ -20,6 +21,12 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        // Ignore self-collision with the owner who fired the projectile
+        if (owner != null && (collision.gameObject == owner || collision.transform.IsChildOf(owner.transform)))
+        {
+            return;
+        }
+
         Damageable damageable = collision.GetComponent<Damageable>();
 
         if (damageable != null)
