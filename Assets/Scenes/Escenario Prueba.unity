@@ -808,6 +808,14 @@ PrefabInstance:
       propertyPath: maxChaseDistance
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 1786922543589172961, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: size.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1786922543589172961, guid: d185940879a21e14fa92161bd312a30a, type: 3}
+      propertyPath: size.y
+      value: 0.18
+      objectReference: {fileID: 0}
     - target: {fileID: 2272170917682388711, guid: d185940879a21e14fa92161bd312a30a, type: 3}
       propertyPath: m_Name
       value: Skeleton
