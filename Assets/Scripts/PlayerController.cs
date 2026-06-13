@@ -14,6 +14,13 @@ public class PlayerController : MonoBehaviour
     TouchingDirections touchingDirections;
     Damageable damageable;
 
+    [Header("Idle Speed Settings")]
+    public float idleSpeedBoostDuration = 3f;
+    private float _idleSpeedCooldownTimer = 0f;
+    private bool _wasRunningOrAttacking = false;
+    private bool _hasIdleSpeedMultiplierParam = false;
+    private bool _paramChecked = false;
+
     [Header("Invincibility Settings")]
     public float invincibilityDuration = 0.5f;
     private SpriteRenderer _spriteRenderer;
@@ -236,6 +243,82 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2 (moveInput.x * CurrentMoveSpeed, rb.linearVelocity.y);
 
         animator.SetFloat(AnimationsStrings.yVelocity, rb.linearVelocity.y);
+    }
+
+    private void Update()
+    {
+        if (!IsAlive) return;
+
+        // Detect if player is running or attacking
+        if (IsRunning && IsMoving && touchingDirections.IsGrounded)
+        {
+            _wasRunningOrAttacking = true;
+        }
+        else
+        {
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            int stateHash = stateInfo.shortNameHash;
+            bool isAttackingState = stateHash == Animator.StringToHash("player_attack_1") || 
+                                   stateHash == Animator.StringToHash("player_bow") ||
+                                   stateHash == Animator.StringToHash("player_attack_2");
+            
+            if (isAttackingState)
+            {
+                _wasRunningOrAttacking = true;
+            }
+        }
+
+        // Check if player is currently in idle state using shortNameHash for robust sub-state machine detection
+        AnimatorStateInfo currentState = animator.GetCurrentAnimatorStateInfo(0);
+        bool isIdle = currentState.shortNameHash == Animator.StringToHash("player_idle");
+
+        if (isIdle)
+        {
+            if (_wasRunningOrAttacking)
+            {
+                // Trigger speed 1.0 idle animation for configured duration
+                _idleSpeedCooldownTimer = idleSpeedBoostDuration;
+                _wasRunningOrAttacking = false;
+            }
+
+            if (_idleSpeedCooldownTimer > 0f)
+            {
+                _idleSpeedCooldownTimer -= Time.deltaTime;
+                SetIdleSpeedMultiplier(1.0f);
+            }
+            else
+            {
+                SetIdleSpeedMultiplier(0.5f);
+            }
+        }
+        else
+        {
+            // Reset parameter to default when not in idle to keep it clean
+            SetIdleSpeedMultiplier(0.5f);
+        }
+    }
+
+    private void SetIdleSpeedMultiplier(float value)
+    {
+        if (animator == null) return;
+
+        if (!_paramChecked)
+        {
+            for (int i = 0; i < animator.parameterCount; i++)
+            {
+                if (animator.parameters[i].name == "idleSpeedMultiplier")
+                {
+                    _hasIdleSpeedMultiplierParam = true;
+                    break;
+                }
+            }
+            _paramChecked = true;
+        }
+
+        if (_hasIdleSpeedMultiplierParam)
+        {
+            animator.SetFloat("idleSpeedMultiplier", value);
+        }
     }
 
     public void OnMove (InputAction.CallbackContext context)
